@@ -1,0 +1,24 @@
+#!/bin/bash
+for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "select blog_id from wp_blogs where archived = 0 and deleted = 0;" -N -B ); do
+        #Check of active domain is set in wp_domain mapping
+        if [[ $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "SELECT blog_id FROM wp_domain_mapping WHERE active = 1 AND blog_id = $i;" -N -B) ]]; then
+                sql="SELECT domain FROM wp_domain_mapping WHERE active = 1 AND blog_id = $i;"
+        elif [ $i = 1 ]; then
+                sql="SELECT option_value FROM wp_options WHERE option_name = 'home';"
+        else
+                sql="SELECT option_value FROM wp_"$i"_options WHERE option_name = 'home';"
+        fi
+
+        domain=$(mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "$sql" -B -N)
+        domain=$(bash -c "echo $domain | sed -r 's/^https?:\/\///; s/\/$//'")
+        combined_file="/etc/haproxy/certs/${domain}.pem"
+
+        if [ -a $combined_file ]; then
+                echo "combined file already exists $combined_file"
+        else
+                certbot-auto certonly --standalone --preferred-challenges http-01 --http-01-port 54321 -d $domain -d "www.$domain"
+                bash -c "cat /etc/letsencrypt/live/$domain/fullchain.pem /etc/letsencrypt/live/$domain/privkey.pem > $combined_file"
+                echo "$combined_file $domain" >> /etc/haproxy/crt-list.txt
+        fi
+        echo $domain
+done
