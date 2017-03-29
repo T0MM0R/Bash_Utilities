@@ -1,8 +1,14 @@
 #!/bin/bash
 
 #Create files for haproxy
-mkdir /etc/haproxy/certs
-touch /etc/haproxy/crt-list.txt
+
+if [! -f /etc/haproxy/certs ]; then
+	mkdir /etc/haproxy/certs
+fi
+
+if [! -f /etc/haproxy/crt-list.txt ]; then
+	touch /etc/haproxy/crt-list.txt
+fi
 
 #Get certificates using data from db
 for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "select blog_id from wp_blogs where archived = 0 and deleted = 0;" -N -B ); do
