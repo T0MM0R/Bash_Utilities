@@ -18,7 +18,7 @@ for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "selec
         else
                 certbot-auto certonly --standalone --preferred-challenges http-01 --http-01-port 54321 -d $domain -d "www.$domain"
                 bash -c "cat /etc/letsencrypt/live/$domain/fullchain.pem /etc/letsencrypt/live/$domain/privkey.pem > $combined_file"
-                echo "$combined_file $domain" >> /etc/haproxy/crt-list.txt
+                echo "$combined_file $domain www.$domain" >> /etc/haproxy/crt-list.txt
         fi
         echo $domain
 done
