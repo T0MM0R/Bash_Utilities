@@ -37,7 +37,7 @@ for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "selec
                 echo "combined file already exists $combined_file"
         else
                 #get certificate including www version
-                certbot-auto certonly --standalone --preferred-challenges http-01 --http-01-port 54321 -d $domain -d "www.$domain"
+                certbot certonly --standalone --preferred-challenges http-01 --http-01-port 54321 -d $domain -d "www.$domain"
 
                 #create combined certificate and key for haproxy
                 bash -c "cat /etc/letsencrypt/live/$domain/fullchain.pem /etc/letsencrypt/live/$domain/privkey.pem > $combined_file"
