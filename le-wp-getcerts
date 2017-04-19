@@ -2,11 +2,11 @@
 
 #Create files for haproxy
 
-if [! -f /etc/haproxy/certs ]; then
+if [ ! -f /etc/haproxy/certs ]; then
 	mkdir /etc/haproxy/certs
 fi
 
-if [! -f /etc/haproxy/crt-list.txt ]; then
+if [ ! -f /etc/haproxy/crt-list.txt ]; then
 	touch /etc/haproxy/crt-list.txt
 fi
 
@@ -29,8 +29,11 @@ for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "selec
         #Strip scheme from domain value
         domain=$(bash -c "echo $domain | sed -r 's/^https?:\/\///; s/\/$//'")
 
+	#Strip www from domain value
+	domain=$(bash -c "echo $domain | sed -r 's/^www\.//; s///'")
+
         #set path for where the combined certificate and key will be created
-        combined_file="/etc/haproxy/certs/${domain}.pem"
+        combined_file="/etc/haproxy/new-certs/${domain}.pem"
 
         #if certificate already exists don't get a new one.
         if [ -a $combined_file ]; then
@@ -43,6 +46,6 @@ for i in $( mysql -u $MYSQL_USER -p$MYSQL_PASS -h$MYSQL_HOST $MYSQL_DB -e "selec
                 bash -c "cat /etc/letsencrypt/live/$domain/fullchain.pem /etc/letsencrypt/live/$domain/privkey.pem > $combined_file"
 
                 #add to cert list so haproxy knows which certs to use for which domains
-                echo "$combined_file $domain www.$domain" >> /etc/haproxy/crt-list.txt
+                echo "$combined_file $domain www.$domain" >> /etc/haproxy/newcrt-list.txt
         fi
 done
